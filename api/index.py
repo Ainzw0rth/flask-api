@@ -52,14 +52,10 @@ def test():
 
 @app.route('/whatsapp', methods=['GET','POST'])
 def whatsapp():
-    response = MessagingResponse()
-
     # sender = request.form.get('From')  # Sender's phone number
     message_body = request.form.get('Body')  # User's message
-
-    response.message(generate_response(message_body)) # template
-
-    return str(response)
+    
+    return str(generate_response(message_body))
 
 if __name__ == '__main__':
     app.run(port=8080)

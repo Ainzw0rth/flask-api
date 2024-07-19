@@ -47,7 +47,7 @@ def hello():
     return "Hello, World!"
 
 @app.route('/test')
-def hello():
+def test():
     return "test"
 
 @app.route('/whatsapp', methods=['GET','POST'])

@@ -63,17 +63,17 @@ def webhook_verify():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    message_body = request.form.get('Body')  # User's message
+    # message_body = request.form.get('Body')  # User's message
 
-    # Generate response using your function
-    response_message = generate_response(message_body)
+    # # Generate response using your function
+    # response_message = generate_response(message_body)
 
     # Prepare payload for WhatsApp API
     payload = {
         'messaging_product': 'whatsapp',
         'to': 'USER_PHONE_NUMBER',  # Replace with the recipient's phone number
         'text': {
-            'body': response_message
+            'body': "test"
         }
     }
 

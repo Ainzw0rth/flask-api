@@ -2,6 +2,7 @@ from flask import Flask, request
 import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
+import requests
 
 # Initialize model
 load_dotenv()
@@ -14,6 +15,8 @@ OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
 SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL = os.getenv("SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL")
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
 VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
+WHATSAPP_ACCESS_TOKEN = os.getenv("WHATSAPP_ACCESS_TOKEN")
+WHATSAPP_API_URL = os.getenv("WHATSAPP_API_URL")
 
 def completion_gpt( prompt, max_tokens=2048, temperature=0.7, top_p=0.95, n=1, apikey=OPENAI_API_KEY):
     gpt_client = AzureOpenAI(
@@ -61,7 +64,31 @@ def webhook_verify():
 @app.route('/webhook', methods=['POST'])
 def webhook():
     message_body = request.form.get('Body')  # User's message
-    return str(generate_response(message_body))
+
+    # Generate response using your function
+    response_message = generate_response(message_body)
+
+    # Prepare payload for WhatsApp API
+    payload = {
+        'messaging_product': 'whatsapp',
+        'to': 'USER_PHONE_NUMBER',  # Replace with the recipient's phone number
+        'text': {
+            'body': response_message
+        }
+    }
+
+    headers = {
+        'Authorization': f'Bearer {WHATSAPP_ACCESS_TOKEN}',
+        'Content-Type': 'application/json'
+    }
+
+    # Send the response message using the WhatsApp API
+    response = requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        return "Message sent successfully", 200
+    else:
+        return "Failed to send message", 500
 
 if __name__ == '__main__':
     app.run(port=8080)

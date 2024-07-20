@@ -63,32 +63,55 @@ def webhook_verify():
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # message_body = request.form.get('Body')  # User's message
+    try:
+        data = request.get_json()
+        app.logger.info(f"Received data: {data}")
 
-    # # Generate response using your function
-    # response_message = generate_response(message_body)
+        phone_number = None
+        if 'entry' in data:
+            for entry in data['entry']:
+                if 'changes' in entry:
+                    for change in entry['changes']:
+                        if 'value' in change and 'messages' in change['value']:
+                            for message in change['value']['messages']:
+                                phone_number = message.get('from')
+                                app.logger.info(f"User phone number: {phone_number}")
+                                break
+                        if phone_number:
+                            break
+                if phone_number:
+                    break
+        
+        message_body = data['entry'][0]['changes'][0]['value']['messages'][0]['text']['body']
+        app.logger.info(f"Received message: {message_body}")
 
-    # Prepare payload for WhatsApp API
-    payload = {
-        'messaging_product': 'whatsapp',
-        'to': 'USER_PHONE_NUMBER',  # Replace with the recipient's phone number
-        'text': {
-            'body': "test"
+        response_message = generate_response(message_body)
+        app.logger.info(f"Generated response: {response_message}")
+
+        payload = {
+            'messaging_product': 'whatsapp',
+            'to': phone_number,
+            'text': {
+                'body': response_message
+            }
         }
-    }
 
-    headers = {
-        'Authorization': f'Bearer {WHATSAPP_ACCESS_TOKEN}',
-        'Content-Type': 'application/json'
-    }
+        headers = {
+            'Authorization': f'Bearer {WHATSAPP_ACCESS_TOKEN}',
+            'Content-Type': 'application/json'
+        }
 
-    # Send the response message using the WhatsApp API
-    response = requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
+        # Send the response message using the WhatsApp API
+        api_response = requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
+        app.logger.info(f"API response: {api_response.status_code} - {api_response.text}")
 
-    if response.status_code == 200:
-        return "Message sent successfully", 200
-    else:
-        return "Failed to send message", 500
+        if api_response.status_code == 200:
+            return "Message sent successfully", 200
+        else:
+            return "Failed to send message", 500
+    except Exception as e:
+        app.logger.error(f"Exception: {str(e)}")
+        return "Server error", 500
 
 if __name__ == '__main__':
     app.run(port=8080)

@@ -13,6 +13,7 @@ OPENAI_API_VERSION = os.getenv("OPENAI_API_VERSION")
 OPENAI_API_BASE = os.getenv("OPENAI_API_BASE")
 SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL = os.getenv("SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL")
 OPENAI_API_TYPE = os.getenv("OPENAI_API_TYPE")
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
 def completion_gpt( prompt, max_tokens=2048, temperature=0.7, top_p=0.95, n=1, apikey=OPENAI_API_KEY):
     gpt_client = AzureOpenAI(
@@ -49,11 +50,17 @@ def hello():
 def test():
     return "test"
 
-@app.route('/whatsapp', methods=['GET','POST'])
-def whatsapp():
-    # sender = request.form.get('From')  # Sender's phone number
-    message_body = request.form.get('Body')  # User's message
+@app.route('/webhook', methods=['GET'])
+def webhook_verify():
+    token = request.args.get('hub.verify_token')
+    challenge = request.args.get('hub.challenge')
+    if token == VERIFY_TOKEN:
+        return str(challenge)
+    return 'Invalid verification token', 403
 
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    message_body = request.form.get('Body')  # User's message
     return str(generate_response(message_body))
 
 if __name__ == '__main__':

@@ -101,7 +101,6 @@ def webhook():
             'Content-Type': 'application/json'
         }
 
-        # Send the response message using the WhatsApp API
         api_response = requests.post(WHATSAPP_API_URL, json=payload, headers=headers)
         app.logger.info(f"API response: {api_response.status_code} - {api_response.text}")
 

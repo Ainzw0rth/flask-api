@@ -1,5 +1,4 @@
 from flask import Flask, request
-from twilio.twiml.messaging_response import MessagingResponse
 import os
 from dotenv import load_dotenv
 from openai import AzureOpenAI
@@ -54,7 +53,7 @@ def test():
 def whatsapp():
     # sender = request.form.get('From')  # Sender's phone number
     message_body = request.form.get('Body')  # User's message
-    
+
     return str(generate_response(message_body))
 
 if __name__ == '__main__':
